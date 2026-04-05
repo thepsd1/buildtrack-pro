@@ -6,15 +6,66 @@ const App = {
   currentPage: 'dashboard',
   projects: [],
   workers: [],
+  user: null,     // logged-in user object
+  role: null,     // 'admin' | 'supervisor' | 'worker'
 
   async init() {
+    // Check if user is already logged in
+    const token = localStorage.getItem('bt_token');
+    const savedUser = localStorage.getItem('bt_user');
+    if (token && savedUser) {
+      try {
+        this.user = await API.getMe();
+        this.role = this.user.role;
+        this.showApp();
+      } catch {
+        this.logout();
+      }
+    } else {
+      this.showLogin();
+    }
+  },
+
+  showLogin() {
+    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('app').style.display = 'none';
+  },
+
+  showApp() {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('app').style.display = 'flex';
     this.setupDate();
     this.setupNav();
     this.setupModal();
     this.setupMenu();
+    this.setupUserBadge();
     document.getElementById('refreshBtn').addEventListener('click', () => this.loadPage(this.currentPage));
-    await this.loadPage('dashboard');
+    this.loadPage('dashboard');
   },
+
+  setupUserBadge() {
+    const u = this.user;
+    document.getElementById('userDisplayName').textContent = u.name;
+    document.getElementById('userDisplayRole').textContent = u.role.charAt(0).toUpperCase() + u.role.slice(1);
+    document.getElementById('userAvatarText').textContent = this.initials(u.name);
+    document.getElementById('logoutBtn').addEventListener('click', () => this.logout());
+
+    // Show/hide Users nav item based on role
+    const usersNav = document.getElementById('nav-users');
+    if (usersNav) usersNav.style.display = u.role === 'admin' ? 'flex' : 'none';
+  },
+
+  logout() {
+    localStorage.removeItem('bt_token');
+    localStorage.removeItem('bt_user');
+    this.user = null;
+    this.role = null;
+    this.showLogin();
+  },
+
+  // Can user perform write actions?
+  canWrite() { return this.role === 'admin' || this.role === 'supervisor'; },
+  isAdmin()  { return this.role === 'admin'; },
 
   setupDate() {
     const d = new Date();
@@ -27,8 +78,7 @@ const App = {
     document.querySelectorAll('.nav-item').forEach(item => {
       item.addEventListener('click', (e) => {
         e.preventDefault();
-        const page = item.dataset.page;
-        this.loadPage(page);
+        this.loadPage(item.dataset.page);
         if (window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
       });
     });
@@ -58,13 +108,13 @@ const App = {
   },
 
   toast(message, type = 'info') {
-    const icons = { success: 'check_circle', error: 'error', info: 'info' };
+    const icons = { success: 'check_circle', error: 'error', info: 'info', warning: 'warning' };
     const container = document.getElementById('toastContainer');
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
-    toast.innerHTML = `<span class="material-icons-round">${icons[type]}</span><span>${message}</span>`;
+    toast.innerHTML = `<span class="material-icons-round">${icons[type]||'info'}</span><span>${message}</span>`;
     container.appendChild(toast);
-    setTimeout(() => toast.remove(), 3000);
+    setTimeout(() => toast.remove(), 3500);
   },
 
   async loadPage(page) {
@@ -75,18 +125,17 @@ const App = {
 
     const titles = {
       dashboard: 'Dashboard', projects: 'Projects', tasks: 'Tasks', workers: 'Workers',
-      materials: 'Materials', dailylogs: 'Daily Logs', attendance: 'Attendance', issues: 'Issues'
+      materials: 'Materials', dailylogs: 'Daily Logs', attendance: 'Attendance', issues: 'Issues', users: 'User Management'
     };
     document.getElementById('pageTitle').textContent = titles[page] || page;
     const container = document.getElementById('pageContainer');
     container.innerHTML = '<div class="loading-screen"><div class="loader"><div class="loader-bar"></div><div class="loader-bar"></div><div class="loader-bar"></div></div><p>Loading...</p></div>';
 
     try {
-      // Pre-fetch common data
-      if (!this.projects.length || ['projects','tasks','materials','dailylogs','attendance','issues'].includes(page)) {
+      if (['projects','tasks','materials','dailylogs','attendance','issues'].includes(page)) {
         this.projects = await API.getProjects();
       }
-      if (!this.workers.length || ['workers','tasks','attendance'].includes(page)) {
+      if (['workers','tasks','attendance'].includes(page)) {
         this.workers = await API.getWorkers();
       }
       const renderer = Pages[page];
@@ -111,7 +160,7 @@ const App = {
   },
 
   projectSelect(selected = '', id = 'projectId') {
-    let opts = `<option value="">All Projects</option>`;
+    let opts = `<option value="">-- Select Project --</option>`;
     App.projects.forEach(p => {
       opts += `<option value="${p.id}" ${p.id === selected ? 'selected' : ''}>${p.name}</option>`;
     });
@@ -147,6 +196,36 @@ const App = {
   }
 };
 
-// Pages object is declared globally in /js/pages.js (loaded first)
+// ── Login Page Logic ──────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  // Login form handler
+  const loginForm = document.getElementById('loginForm');
+  if (loginForm) {
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const mobile = document.getElementById('loginMobile').value.trim();
+      const password = document.getElementById('loginPassword').value;
+      const btn = document.getElementById('loginBtn');
+      const err = document.getElementById('loginError');
+      err.style.display = 'none';
+      btn.disabled = true;
+      btn.innerHTML = '<span class="material-icons-round spin">autorenew</span> Signing in...';
 
-document.addEventListener('DOMContentLoaded', () => App.init());
+      try {
+        const res = await API.login(mobile, password);
+        localStorage.setItem('bt_token', res.token);
+        localStorage.setItem('bt_user', JSON.stringify(res.user));
+        App.user = res.user;
+        App.role = res.user.role;
+        App.showApp();
+      } catch (error) {
+        err.textContent = error.message || 'Login failed. Check your credentials.';
+        err.style.display = 'flex';
+        btn.disabled = false;
+        btn.innerHTML = '<span class="material-icons-round">login</span> Sign In';
+      }
+    });
+  }
+
+  App.init();
+});

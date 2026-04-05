@@ -1,6 +1,16 @@
 const mongoose = require('mongoose');
-
 const { Schema } = mongoose;
+
+// ── Users ─────────────────────────────────────────────────
+const userSchema = new Schema({
+  id:        { type: String, required: true, unique: true },
+  name:      { type: String, required: true },
+  mobile:    { type: String, required: true, unique: true },
+  password:  { type: String, required: true },
+  role:      { type: String, enum: ['admin','supervisor','worker'], default: 'worker' },
+  status:    { type: String, enum: ['active','inactive'], default: 'active' },
+  createdAt: { type: String, default: () => new Date().toISOString() }
+});
 
 // ── Projects ──────────────────────────────────────────────
 const projectSchema = new Schema({
@@ -108,6 +118,7 @@ const issueSchema = new Schema({
 });
 
 module.exports = {
+  User:       mongoose.model('User',       userSchema),
   Project:    mongoose.model('Project',    projectSchema),
   Worker:     mongoose.model('Worker',     workerSchema),
   Task:       mongoose.model('Task',       taskSchema),

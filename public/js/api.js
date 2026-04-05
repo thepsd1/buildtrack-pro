@@ -1,99 +1,93 @@
 /* =============================================
-   API Client — BuildTrack Pro
+   BuildTrack Pro — API Client
    ============================================= */
 
 const API = {
   base: '/api',
 
-  async request(endpoint, options = {}) {
-    const url = `${this.base}${endpoint}`;
-    const config = {
-      headers: { 'Content-Type': 'application/json' },
-      ...options,
-    };
-    if (config.body && typeof config.body === 'object') {
-      config.body = JSON.stringify(config.body);
+  // Get stored token
+  token() { return localStorage.getItem('bt_token'); },
+
+  // Default headers with auth
+  headers() {
+    const h = { 'Content-Type': 'application/json' };
+    const t = this.token();
+    if (t) h['Authorization'] = `Bearer ${t}`;
+    return h;
+  },
+
+  async request(method, url, body) {
+    const res = await fetch(this.base + url, {
+      method,
+      headers: this.headers(),
+      body: body ? JSON.stringify(body) : undefined
+    });
+    if (res.status === 401) {
+      localStorage.removeItem('bt_token');
+      localStorage.removeItem('bt_user');
+      window.location.reload();
+      return;
     }
-    try {
-      const response = await fetch(url, config);
-      if (!response.ok) {
-        const err = await response.json().catch(() => ({ error: 'Request failed' }));
-        throw new Error(err.error || 'Request failed');
-      }
-      return await response.json();
-    } catch (err) {
-      console.error(`API Error [${endpoint}]:`, err);
-      throw err;
-    }
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Request failed');
+    return data;
   },
 
-  // Dashboard
-  getDashboard() { return this.request('/dashboard'); },
+  get:    (url)       => API.request('GET',    url),
+  post:   (url, body) => API.request('POST',   url, body),
+  put:    (url, body) => API.request('PUT',    url, body),
+  delete: (url)       => API.request('DELETE', url),
 
-  // Projects
-  getProjects() { return this.request('/projects'); },
-  getProject(id) { return this.request(`/projects/${id}`); },
-  createProject(data) { return this.request('/projects', { method: 'POST', body: data }); },
-  updateProject(id, data) { return this.request(`/projects/${id}`, { method: 'PUT', body: data }); },
-  deleteProject(id) { return this.request(`/projects/${id}`, { method: 'DELETE' }); },
-  getProjectStats(id) { return this.request(`/projects/${id}/stats`); },
+  // ── Auth ─────────────────────────────────────────────────
+  login:   (mobile, password) => API.post('/auth/login', { mobile, password }),
+  getMe:   ()                 => API.get('/auth/me'),
+  getUsers:()                 => API.get('/auth/users'),
+  createUser: (data)          => API.post('/auth/users', data),
+  updateUser: (id, data)      => API.put(`/auth/users/${id}`, data),
+  deleteUser: (id)            => API.delete(`/auth/users/${id}`),
 
-  // Tasks
-  getTasks(params = {}) {
-    const qs = new URLSearchParams(params).toString();
-    return this.request(`/tasks${qs ? '?' + qs : ''}`);
-  },
-  createTask(data) { return this.request('/tasks', { method: 'POST', body: data }); },
-  updateTask(id, data) { return this.request(`/tasks/${id}`, { method: 'PUT', body: data }); },
-  deleteTask(id) { return this.request(`/tasks/${id}`, { method: 'DELETE' }); },
+  // ── Dashboard ─────────────────────────────────────────────
+  getDashboard: () => API.get('/dashboard'),
 
-  // Workers
-  getWorkers(params = {}) {
-    const qs = new URLSearchParams(params).toString();
-    return this.request(`/workers${qs ? '?' + qs : ''}`);
-  },
-  getWorker(id) { return this.request(`/workers/${id}`); },
-  createWorker(data) { return this.request('/workers', { method: 'POST', body: data }); },
-  updateWorker(id, data) { return this.request(`/workers/${id}`, { method: 'PUT', body: data }); },
-  deleteWorker(id) { return this.request(`/workers/${id}`, { method: 'DELETE' }); },
+  // ── Projects ─────────────────────────────────────────────
+  getProjects:   ()       => API.get('/projects'),
+  getProject:    (id)     => API.get(`/projects/${id}`),
+  createProject: (data)   => API.post('/projects', data),
+  updateProject: (id, d)  => API.put(`/projects/${id}`, d),
+  deleteProject: (id)     => API.delete(`/projects/${id}`),
 
-  // Materials
-  getMaterials(params = {}) {
-    const qs = new URLSearchParams(params).toString();
-    return this.request(`/materials${qs ? '?' + qs : ''}`);
-  },
-  createMaterial(data) { return this.request('/materials', { method: 'POST', body: data }); },
-  updateMaterial(id, data) { return this.request(`/materials/${id}`, { method: 'PUT', body: data }); },
-  deleteMaterial(id) { return this.request(`/materials/${id}`, { method: 'DELETE' }); },
-  getMaterialSummary(projectId) { return this.request(`/materials/summary/${projectId}`); },
+  // ── Tasks ─────────────────────────────────────────────────
+  getTasks:   (params = {}) => API.get('/tasks?' + new URLSearchParams(params)),
+  createTask: (data)        => API.post('/tasks', data),
+  updateTask: (id, data)    => API.put(`/tasks/${id}`, data),
+  deleteTask: (id)          => API.delete(`/tasks/${id}`),
 
-  // Daily Logs
-  getDailyLogs(params = {}) {
-    const qs = new URLSearchParams(params).toString();
-    return this.request(`/daily-logs${qs ? '?' + qs : ''}`);
-  },
-  createDailyLog(data) { return this.request('/daily-logs', { method: 'POST', body: data }); },
-  updateDailyLog(id, data) { return this.request(`/daily-logs/${id}`, { method: 'PUT', body: data }); },
-  deleteDailyLog(id) { return this.request(`/daily-logs/${id}`, { method: 'DELETE' }); },
+  // ── Workers ───────────────────────────────────────────────
+  getWorkers:   (params = {}) => API.get('/workers?' + new URLSearchParams(params)),
+  getWorker:    (id)          => API.get(`/workers/${id}`),
+  createWorker: (data)        => API.post('/workers', data),
+  updateWorker: (id, data)    => API.put(`/workers/${id}`, data),
+  deleteWorker: (id)          => API.delete(`/workers/${id}`),
 
-  // Attendance
-  getAttendance(params = {}) {
-    const qs = new URLSearchParams(params).toString();
-    return this.request(`/attendance${qs ? '?' + qs : ''}`);
-  },
-  createAttendance(data) { return this.request('/attendance', { method: 'POST', body: data }); },
-  bulkAttendance(records) { return this.request('/attendance/bulk', { method: 'POST', body: { records } }); },
-  getAttendanceSummary(params) {
-    const qs = new URLSearchParams(params).toString();
-    return this.request(`/attendance/summary?${qs}`);
-  },
+  // ── Materials ─────────────────────────────────────────────
+  getMaterials:   (params = {}) => API.get('/materials?' + new URLSearchParams(params)),
+  createMaterial: (data)        => API.post('/materials', data),
+  updateMaterial: (id, data)    => API.put(`/materials/${id}`, data),
+  deleteMaterial: (id)          => API.delete(`/materials/${id}`),
 
-  // Issues
-  getIssues(params = {}) {
-    const qs = new URLSearchParams(params).toString();
-    return this.request(`/issues${qs ? '?' + qs : ''}`);
-  },
-  createIssue(data) { return this.request('/issues', { method: 'POST', body: data }); },
-  updateIssue(id, data) { return this.request(`/issues/${id}`, { method: 'PUT', body: data }); },
-  deleteIssue(id) { return this.request(`/issues/${id}`, { method: 'DELETE' }); },
+  // ── Daily Logs ────────────────────────────────────────────
+  getDailyLogs:   (params = {}) => API.get('/daily-logs?' + new URLSearchParams(params)),
+  createDailyLog: (data)        => API.post('/daily-logs', data),
+  updateDailyLog: (id, data)    => API.put(`/daily-logs/${id}`, data),
+  deleteDailyLog: (id)          => API.delete(`/daily-logs/${id}`),
+
+  // ── Attendance ────────────────────────────────────────────
+  getAttendance:  (params = {}) => API.get('/attendance?' + new URLSearchParams(params)),
+  bulkAttendance: (records)     => API.post('/attendance/bulk', { records }),
+
+  // ── Issues ────────────────────────────────────────────────
+  getIssues:   (params = {}) => API.get('/issues?' + new URLSearchParams(params)),
+  createIssue: (data)        => API.post('/issues', data),
+  updateIssue: (id, data)    => API.put(`/issues/${id}`, data),
+  deleteIssue: (id)          => API.delete(`/issues/${id}`),
 };

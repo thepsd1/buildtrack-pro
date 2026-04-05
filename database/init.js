@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const { v4: uuidv4 } = require('uuid');
+const bcrypt = require('bcryptjs');
 const fs = require('fs');
 const path = require('path');
 
@@ -8,7 +9,7 @@ const USE_MONGO = !!process.env.MONGODB_URI;
 
 // ── JSON fallback store (used when MongoDB is not configured) ──
 const DB_PATH = path.join(__dirname, 'data.json');
-let store = { projects: [], workers: [], tasks: [], materials: [], daily_logs: [], attendance: [], issues: [] };
+let store = { users: [], projects: [], workers: [], tasks: [], materials: [], daily_logs: [], attendance: [], issues: [] };
 
 function loadJSON() {
   try { if (fs.existsSync(DB_PATH)) store = JSON.parse(fs.readFileSync(DB_PATH, 'utf8')); } catch (e) {}
@@ -22,7 +23,7 @@ let models = {};
 let Attendance;
 if (USE_MONGO) {
   const m = require('./models');
-  models = { projects: m.Project, workers: m.Worker, tasks: m.Task, materials: m.Material, daily_logs: m.DailyLog, attendance: m.Attendance, issues: m.Issue };
+  models = { users: m.User, projects: m.Project, workers: m.Worker, tasks: m.Task, materials: m.Material, daily_logs: m.DailyLog, attendance: m.Attendance, issues: m.Issue };
   Attendance = m.Attendance;
 }
 
@@ -109,6 +110,18 @@ const db = {
 
 // ── Seed demo data if DB is empty ─────────────────────────
 async function seed() {
+  // Seed default users if none exist
+  const existingUsers = await db.getAll('users');
+  if (existingUsers.length === 0) {
+    console.log('🌱 Seeding default users...');
+    const hash = pwd => bcrypt.hashSync(pwd, 10);
+    await db.insert('users', { id: uuidv4(), name: 'Site Admin',      mobile: '9000000001', password: hash('admin123'),  role: 'admin',      status: 'active' });
+    await db.insert('users', { id: uuidv4(), name: 'Rajesh Kumar',    mobile: '9876543210', password: hash('super123'),  role: 'supervisor', status: 'active' });
+    await db.insert('users', { id: uuidv4(), name: 'Priya Patel',     mobile: '9876543212', password: hash('super123'),  role: 'supervisor', status: 'active' });
+    await db.insert('users', { id: uuidv4(), name: 'Amit Sharma',     mobile: '9876543211', password: hash('work123'),   role: 'worker',     status: 'active' });
+    console.log('✅ Default users created');
+  }
+
   const existing = await db.getAll('projects');
   if (existing.length > 0) return;
 
