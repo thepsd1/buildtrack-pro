@@ -23,7 +23,7 @@ const workerSchema = new Schema({
   role:       { type: String, required: true },
   phone:      String,
   email:      String,
-  hourlyRate: { type: Number, default: 0 },
+  dailyRate:  { type: Number, default: 0 },
   status:     { type: String, default: 'active', enum: ['active','inactive'] },
   createdAt:  { type: String, default: () => new Date().toISOString() }
 });

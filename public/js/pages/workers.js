@@ -9,7 +9,7 @@ Pages.workers = async function () {
       <button class="btn btn-primary" id="addWorkerBtn"><span class="material-icons-round">person_add</span> Add Worker</button>
     </div>
     <div class="table-wrapper"><table class="data-table"><thead><tr>
-      <th>Worker</th><th>Role</th><th>Phone</th><th>Rate/hr</th><th>Status</th><th>Actions</th>
+      <th>Worker</th><th>Role</th><th>Phone</th><th>Rate/day</th><th>Status</th><th>Actions</th>
     </tr></thead><tbody id="workersBody"></tbody></table></div>
   `;
   const tbody = el.querySelector('#workersBody');
@@ -20,7 +20,7 @@ Pages.workers = async function () {
         <span class="td-primary">${w.name}</span>
       </div></td>
       <td>${w.role}</td><td>${w.phone || '-'}</td>
-      <td>${App.formatCurrency(w.hourlyRate)}</td><td>${App.badge(w.status)}</td>
+      <td>${App.formatCurrency(w.dailyRate)}</td><td>${App.badge(w.status)}</td>
       <td><div class="btn-group">
         <button class="btn btn-secondary btn-sm edit-worker" data-id="${w.id}"><span class="material-icons-round" style="font-size:14px">edit</span></button>
         <button class="btn btn-danger btn-sm del-worker" data-id="${w.id}"><span class="material-icons-round" style="font-size:14px">delete</span></button>
@@ -46,7 +46,7 @@ function showWorkerForm(w = null) {
       <div class="form-group"><label class="form-label">Role *</label><input class="form-input" name="role" value="${w?.role||''}" required></div>
       <div class="form-group"><label class="form-label">Phone</label><input class="form-input" name="phone" value="${w?.phone||''}"></div>
       <div class="form-group"><label class="form-label">Email</label><input class="form-input" name="email" type="email" value="${w?.email||''}"></div>
-      <div class="form-group"><label class="form-label">Hourly Rate (₹)</label><input class="form-input" name="hourlyRate" type="number" value="${w?.hourlyRate||0}"></div>
+      <div class="form-group"><label class="form-label">Daily Rate (₹)</label><input class="form-input" name="dailyRate" type="number" value="${w?.dailyRate||0}"></div>
       <div class="form-group"><label class="form-label">Status</label><select class="form-select" name="status">
         <option value="active" ${w?.status==='active'?'selected':''}>Active</option>
         <option value="inactive" ${w?.status==='inactive'?'selected':''}>Inactive</option>

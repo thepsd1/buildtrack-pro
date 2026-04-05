@@ -28,16 +28,16 @@ router.get('/:id', async (req, res) => {
 
 router.post('/', async (req, res) => {
   try {
-    const { name, role, phone, email, hourlyRate, status } = req.body;
-    const worker = await db.insert('workers', { name, role, phone, email, hourlyRate: Number(hourlyRate) || 0, status: status || 'active' });
+    const { name, role, phone, email, dailyRate, status } = req.body;
+    const worker = await db.insert('workers', { name, role, phone, email, dailyRate: Number(dailyRate) || 0, status: status || 'active' });
     res.status(201).json(worker);
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 router.put('/:id', async (req, res) => {
   try {
-    const { name, role, phone, email, hourlyRate, status } = req.body;
-    const worker = await db.update('workers', req.params.id, { name, role, phone, email, hourlyRate: Number(hourlyRate), status });
+    const { name, role, phone, email, dailyRate, status } = req.body;
+    const worker = await db.update('workers', req.params.id, { name, role, phone, email, dailyRate: Number(dailyRate), status });
     res.json(worker);
   } catch (err) { res.status(500).json({ error: err.message }); }
 });

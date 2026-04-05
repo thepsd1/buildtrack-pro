@@ -100,12 +100,12 @@ async function seed() {
   ]);
 
   await Worker.insertMany([
-    { id: w1, name: 'Rajesh Kumar',  role: 'Site Engineer',   phone: '9876543210', email: 'rajesh@example.com',  hourlyRate: 850, status: 'active' },
-    { id: w2, name: 'Amit Sharma',   role: 'Mason',           phone: '9876543211', email: 'amit@example.com',    hourlyRate: 600, status: 'active' },
-    { id: w3, name: 'Priya Patel',   role: 'Safety Officer',  phone: '9876543212', email: 'priya@example.com',   hourlyRate: 750, status: 'active' },
-    { id: w4, name: 'Suresh Yadav',  role: 'Electrician',     phone: '9876543213', email: 'suresh@example.com',  hourlyRate: 700, status: 'active' },
-    { id: w5, name: 'Deepak Singh',  role: 'Carpenter',       phone: '9876543214', email: 'deepak@example.com',  hourlyRate: 650, status: 'active' },
-    { id: w6, name: 'Anita Verma',   role: 'Architect',       phone: '9876543215', email: 'anita@example.com',   hourlyRate: 950, status: 'active' },
+    { id: w1, name: 'Rajesh Kumar',  role: 'Site Engineer',   phone: '9876543210', email: 'rajesh@example.com',  dailyRate: 2500, status: 'active' },
+    { id: w2, name: 'Amit Sharma',   role: 'Mason',           phone: '9876543211', email: 'amit@example.com',    dailyRate: 800,  status: 'active' },
+    { id: w3, name: 'Priya Patel',   role: 'Safety Officer',  phone: '9876543212', email: 'priya@example.com',   dailyRate: 1800, status: 'active' },
+    { id: w4, name: 'Suresh Yadav',  role: 'Electrician',     phone: '9876543213', email: 'suresh@example.com',  dailyRate: 1200, status: 'active' },
+    { id: w5, name: 'Deepak Singh',  role: 'Carpenter',       phone: '9876543214', email: 'deepak@example.com',  dailyRate: 900,  status: 'active' },
+    { id: w6, name: 'Anita Verma',   role: 'Architect',       phone: '9876543215', email: 'anita@example.com',   dailyRate: 3500, status: 'active' },
   ]);
 
   await Task.insertMany([
