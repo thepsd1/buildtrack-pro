@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BuildTrack Pro — Construction Management</title>
+  <meta name="description" content="Onsite construction management application for tracking daily progress, materials, workers, and issues in real time.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏗️</text></svg>">
+</head>
+<body>
+  <div id="app">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="logo">
+          <div class="logo-icon">
+            <span class="material-icons-round">construction</span>
+          </div>
+          <div class="logo-text">
+            <h1>BuildTrack</h1>
+            <span>PRO</span>
+          </div>
+        </div>
+      </div>
+      <nav class="sidebar-nav" id="sidebarNav">
+        <a href="#" class="nav-item active" data-page="dashboard" id="nav-dashboard">
+          <span class="material-icons-round">dashboard</span>
+          <span class="nav-label">Dashboard</span>
+        </a>
+        <a href="#" class="nav-item" data-page="projects" id="nav-projects">
+          <span class="material-icons-round">apartment</span>
+          <span class="nav-label">Projects</span>
+        </a>
+        <a href="#" class="nav-item" data-page="tasks" id="nav-tasks">
+          <span class="material-icons-round">task_alt</span>
+          <span class="nav-label">Tasks</span>
+        </a>
+        <a href="#" class="nav-item" data-page="workers" id="nav-workers">
+          <span class="material-icons-round">engineering</span>
+          <span class="nav-label">Workers</span>
+        </a>
+        <a href="#" class="nav-item" data-page="materials" id="nav-materials">
+          <span class="material-icons-round">inventory_2</span>
+          <span class="nav-label">Materials</span>
+        </a>
+        <a href="#" class="nav-item" data-page="dailylogs" id="nav-dailylogs">
+          <span class="material-icons-round">edit_note</span>
+          <span class="nav-label">Daily Logs</span>
+        </a>
+        <a href="#" class="nav-item" data-page="attendance" id="nav-attendance">
+          <span class="material-icons-round">fact_check</span>
+          <span class="nav-label">Attendance</span>
+        </a>
+        <a href="#" class="nav-item" data-page="issues" id="nav-issues">
+          <span class="material-icons-round">report_problem</span>
+          <span class="nav-label">Issues</span>
+        </a>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="user-badge">
+          <div class="user-avatar">SK</div>
+          <div class="user-info">
+            <span class="user-name">Site Admin</span>
+            <span class="user-role">Supervisor</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content" id="mainContent">
+      <!-- Top Bar -->
+      <header class="topbar">
+        <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">
+          <span class="material-icons-round">menu</span>
+        </button>
+        <div class="topbar-title">
+          <h2 id="pageTitle">Dashboard</h2>
+          <span class="topbar-date" id="currentDate"></span>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn-icon" id="refreshBtn" aria-label="Refresh data">
+            <span class="material-icons-round">refresh</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Page Container -->
+      <div class="page-container" id="pageContainer">
+        <!-- Pages are dynamically rendered here -->
+        <div class="loading-screen" id="loadingScreen">
+          <div class="loader">
+            <div class="loader-bar"></div>
+            <div class="loader-bar"></div>
+            <div class="loader-bar"></div>
+          </div>
+          <p>Loading BuildTrack Pro...</p>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal" id="modalContainer">
+      <div class="modal-header">
+        <h3 id="modalTitle">Modal</h3>
+        <button class="btn-icon modal-close" id="modalClose" aria-label="Close modal">
+          <span class="material-icons-round">close</span>
+        </button>
+      </div>
+      <div class="modal-body" id="modalBody"></div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/pages.js"></script>
+  <script src="/js/pages/dashboard.js"></script>
+  <script src="/js/pages/projects.js"></script>
+  <script src="/js/pages/tasks.js"></script>
+  <script src="/js/pages/workers.js"></script>
+  <script src="/js/pages/materials.js"></script>
+  <script src="/js/pages/dailylogs.js"></script>
+  <script src="/js/pages/attendance.js"></script>
+  <script src="/js/pages/issues.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+</html>
