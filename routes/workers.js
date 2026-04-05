@@ -1,51 +1,49 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../database/init');
+const { db } = require('../database/init');
 
-router.get('/', (req, res) => {
+router.get('/', async (req, res) => {
   try {
     const { status } = req.query;
     const filters = {};
     if (status) filters.status = status;
-    const workers = db.getAll('workers', filters).sort((a, b) => a.name.localeCompare(b.name));
+    const workers = (await db.getAll('workers', filters)).sort((a, b) => a.name.localeCompare(b.name));
     res.json(workers);
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-router.get('/:id', (req, res) => {
+router.get('/:id', async (req, res) => {
   try {
-    const worker = db.getById('workers', req.params.id);
+    const worker = await db.getById('workers', req.params.id);
     if (!worker) return res.status(404).json({ error: 'Not found' });
-    const attendance = db.getAll('attendance', { workerId: req.params.id });
+    const attendance = await db.getAll('attendance', { workerId: req.params.id });
     const summary = {};
     attendance.forEach(a => { summary[a.status] = (summary[a.status] || 0) + 1; });
     const attendanceSummary = Object.entries(summary).map(([status, count]) => ({ status, count }));
-    const assignedTasks = db.getAll('tasks', { assignedTo: req.params.id }).map(t => {
-      const p = db.getById('projects', t.projectId);
-      return { ...t, projectName: p?.name || null };
-    });
+    const tasks = await db.getAll('tasks', { assignedTo: req.params.id });
+    const assignedTasks = await Promise.all(tasks.map(async t => { const p = await db.getById('projects', t.projectId); return { ...t, projectName: p?.name || null }; }));
     res.json({ ...worker, attendanceSummary, assignedTasks });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
   try {
     const { name, role, phone, email, hourlyRate, status } = req.body;
-    const worker = db.insert('workers', { name, role, phone, email, hourlyRate: Number(hourlyRate) || 0, status: status || 'active' });
+    const worker = await db.insert('workers', { name, role, phone, email, hourlyRate: Number(hourlyRate) || 0, status: status || 'active' });
     res.status(201).json(worker);
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-router.put('/:id', (req, res) => {
+router.put('/:id', async (req, res) => {
   try {
     const { name, role, phone, email, hourlyRate, status } = req.body;
-    const worker = db.update('workers', req.params.id, { name, role, phone, email, hourlyRate: Number(hourlyRate), status });
+    const worker = await db.update('workers', req.params.id, { name, role, phone, email, hourlyRate: Number(hourlyRate), status });
     res.json(worker);
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-router.delete('/:id', (req, res) => {
-  try { db.delete('workers', req.params.id); res.json({ message: 'Deleted' }); }
+router.delete('/:id', async (req, res) => {
+  try { await db.delete('workers', req.params.id); res.json({ message: 'Deleted' }); }
   catch (err) { res.status(500).json({ error: err.message }); }
 });
 
